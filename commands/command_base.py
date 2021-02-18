@@ -1,10 +1,8 @@
-from abc import ABC
-from abc import abstractmethod
 import argparse
 from typing import NoReturn
 
-from commands.exceptions import ParsingError
-from commands.exceptions import ParserExitWarning
+from exceptions import ParsingError
+from exceptions import ParserExitWarning
 
 
 class CalmerParser(argparse.ArgumentParser):
@@ -17,21 +15,10 @@ class CalmerParser(argparse.ArgumentParser):
         raise ParsingError
 
 
-class CommandBase(ABC):
+class CommandBase:
     def __init__(self):
         self._parser = CalmerParser()
-        self._parsed_arguments = None
-
         self._parser.add_argument("-f", "--fail",
                                   help="Cause the mock API to reject the command's HTTP request.",
                                   action="store_true",
                                   default=False)
-
-    @abstractmethod
-    def execute(self, arguments: str) -> None:
-        try:
-            self._parsed_arguments = self._parser.parse_args(arguments.split())
-        except ParserExitWarning:
-            pass
-        except ParsingError:
-            print(f"Invalid command arguments; type \"command --help\" for usage details.")

@@ -1,11 +1,8 @@
 import requests
 
+from exceptions import ExecutionError
 from server_mock import make_mock_server_adapter
 from server_mock import MockConstants
-
-
-class ConnectionFailed(RuntimeError):
-    pass
 
 
 class ClientSession:
@@ -26,8 +23,10 @@ class ClientSession:
         if response.ok:
             self._last_server_modification = int(response.text)
         else:
-            print(f"Error: {response.status_code}")
-            raise ConnectionFailed
+            raise ExecutionError(f"HTTP request failed: {response.status_code}")
 
     def get_address(self) -> str:
         return f"{self._address_scheme}://{self._server_address}"
+
+    def get_server_modification_time(self) -> int:
+        return 5

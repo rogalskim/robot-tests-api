@@ -1,8 +1,5 @@
-from typing import Optional
-
 from commands.command_base import CommandBase
-from commands.exceptions import ParserExitWarning
-from client_session import ClientSession, ConnectionFailed
+from client_session import ClientSession
 
 
 class Connect(CommandBase):
@@ -16,17 +13,8 @@ class Connect(CommandBase):
                                   type=int,
                                   default=5000)
 
-    def execute(self, arguments: str) -> Optional[ClientSession]:
-        super().execute(arguments)
-
-        if self._parsed_arguments is None:
-            raise ParserExitWarning
-
-        try:
-            session = ClientSession(self._parsed_arguments.host,
-                                    self._parsed_arguments.port,
-                                    self._parsed_arguments.fail)
-        except ConnectionFailed:
-            return None
-
-        return session
+    def execute(self, arguments: str) -> ClientSession:
+        parsed_arguments = self._parser.parse_args(arguments.split())
+        return ClientSession(parsed_arguments.host,
+                             parsed_arguments.port,
+                             parsed_arguments.fail)

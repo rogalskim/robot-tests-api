@@ -14,3 +14,15 @@ class Task:
         self.status = "waiting"
         self.attempts = None
         self.successes = None
+
+
+def json_to_task(json: dict) -> Task:
+    task = Task(json["task_id"],
+                json["creation_time"],
+                json["robot_id"],
+                json["runs"],
+                json["branch"])
+    task.status = json["status"]
+    task.attempts = json["attempts"]
+    task.successes = json["successes"]
+    return task

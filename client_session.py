@@ -1,6 +1,7 @@
 import requests
 
 from exceptions import ExecutionError
+from task import Task, json_to_task
 from server_mock import ServerMock, MockConstants
 
 
@@ -22,7 +23,7 @@ class ClientSession:
 
     def get_server_modification_time(self, simulate_failure: bool = False) -> int:
         headers = self._add_fail_header(headers={}, should_fail=simulate_failure)
-        response = self._session.get(f"{self._server_address}/info", headers=headers)
+        response = self._session.get(f"{self._server_address}/info?q=mod_time", headers=headers)
         if response.ok:
             return int(response.text)
         else:
@@ -54,6 +55,16 @@ class ClientSession:
         robot_list = response.text.split()
         robot_dict = {index: robot_name for index, robot_name in enumerate(robot_list)}
         return robot_dict
+
+    def get_task(self, task_id: int, simulate_failure: bool) -> Task:
+        request_headers = self._add_fail_header(headers={}, should_fail=simulate_failure)
+        request_url = f"{self._server_address}/tasks?id={task_id}"
+        response = self._session.get(url=request_url, headers=request_headers)
+
+        if not response.ok:
+            raise ExecutionError(f"HTTP request failed: {response.status_code}\n{response.reason}")
+
+        return json_to_task(response.json())
 
     @staticmethod
     def _add_fail_header(headers: dict, should_fail: bool) -> dict:

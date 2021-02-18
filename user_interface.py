@@ -4,6 +4,7 @@ from commands.connect import Connect
 from commands.create_task import CreateTask
 from commands.get_modification_time import GetModificationTime
 from commands.get_robots import GetRobots
+from commands.get_task import GetTask
 from exceptions import ExecutionError, ParserExitWarning, ParsingError
 
 
@@ -74,6 +75,13 @@ class UserInterface(cmd.Cmd):
         """Requests the list of known robots and prints it."""
         robot_dict = GetRobots().execute(arguments, self._client_session)
         print(robot_dict)
+
+    @requires_session
+    @raises_command_exceptions
+    def do_get_task(self, arguments: str) -> None:
+        """Requests one Task by its id and prints it."""
+        task = GetTask().execute(arguments, self._client_session)
+        print(task.__dict__)
 
     def do_exit(self, _) -> None:
         """Sets the exit flag, resulting in program termination. Ignores any arguments."""

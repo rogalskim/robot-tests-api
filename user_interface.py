@@ -1,6 +1,8 @@
 import cmd
 
 from commands.connect import Connect
+from commands.exceptions import ParserExitWarning
+from client_session import ClientSession
 
 
 class UserInterface(cmd.Cmd):
@@ -9,22 +11,31 @@ class UserInterface(cmd.Cmd):
         self.prompt = "> "
         self.ruler = '-'
         self.intro = self.__make_welcome_message()
-        self.was_exit_called = False
+        self._was_exit_called = False
+        self._client_session = None
 
     def do_connect(self, arguments: str) -> None:
-        """Sets the address of the target test server and queries last update time."""
-        address, port = Connect().execute(arguments)
-        print(f"{address}:{port}")
+        """Sets the address of the test server and checks the connection."""
+        try:
+            new_session = Connect().execute(arguments)
+        except ParserExitWarning:
+            return
+
+        if new_session is not None:
+            self._client_session = new_session
+            print(f"Established connection to {self._client_session.get_address()}")
+        else:
+            print(f"Failed to establish connection to server.")
 
     def do_exit(self, _) -> None:
         """Sets the exit flag, resulting in program termination."""
-        self.was_exit_called = True
+        self._was_exit_called = True
 
     def postcmd(self, _1: bool, _2: str) -> bool:
         """Triggers main interface loop termination if exit flag was set. Overridden method."""
-        if self.was_exit_called:
+        if self._was_exit_called:
             print("Goodbye!")
-        return self.was_exit_called
+        return self._was_exit_called
 
     @staticmethod
     def __make_welcome_message() -> str:

@@ -27,7 +27,6 @@ class CommandBase(ABC):
         try:
             self._parsed_arguments = self._parser.parse_args(arguments.split())
         except ParserExitWarning:
-            return
+            pass
         except ParsingError:
             print(f"Invalid command arguments; type \"command --help\" for usage details.")
-            return

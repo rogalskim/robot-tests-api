@@ -28,6 +28,10 @@ class ServerMock:
                                    url=f"{server_address}/tasks",
                                    text=self._create_task)
 
+        self._adapter.register_uri(method="GET",
+                                   url=f"{server_address}/robots",
+                                   text=self._get_robot_list)
+
     @staticmethod
     def _should_response_fail(request: requests.Request) -> bool:
         if MockConstants.fail_key not in request.headers.keys():
@@ -38,7 +42,7 @@ class ServerMock:
         """
         Mock callback for Server modification time requests.
 
-        :returns: modification timestamp as str
+        :returns: modification timestamp as str.
         """
         if self._should_response_fail(request):
             context.status_code = requests.codes.server_error
@@ -53,7 +57,7 @@ class ServerMock:
         """
         Mock callback for Task creation requests.
 
-        :returns: Task id as string
+        :returns: Task id as string.
         """
         requested_task_details = request.json()
 
@@ -77,6 +81,19 @@ class ServerMock:
         self._next_task_id += 1
 
         return str(new_task.task_id)
+
+    def _get_robot_list(self, request: requests.Request, context: Any) -> str:
+        """
+        Mock callback for robot list requests.
+
+        :returns: robot names separated by spaces.
+        """
+        if self._should_response_fail(request):
+            context.status_code = requests.codes.im_a_teapot
+            context.reason = "The robots have rebelled."
+        else:
+            context.status_code = requests.codes.ok
+        return " ".join(self._robots)
 
     def get_mock_adapter(self) -> requests_mock.Adapter:
         return self._adapter

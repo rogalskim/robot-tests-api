@@ -3,6 +3,7 @@ import cmd
 from commands.connect import Connect
 from commands.create_task import CreateTask
 from commands.get_modification_time import GetModificationTime
+from commands.get_robots import GetRobots
 from exceptions import ExecutionError, ParserExitWarning, ParsingError
 
 
@@ -66,6 +67,13 @@ class UserInterface(cmd.Cmd):
         """Sends Task creation request to the Server."""
         created_task_id = CreateTask().execute(arguments, self._client_session)
         print(f"Created new Task with id: {created_task_id}")
+
+    @requires_session
+    @raises_command_exceptions
+    def do_get_robots(self, arguments: str) -> None:
+        """Requests the list of known robots and prints it."""
+        robot_dict = GetRobots().execute(arguments, self._client_session)
+        print(robot_dict)
 
     def do_exit(self, _) -> None:
         """Sets the exit flag, resulting in program termination. Ignores any arguments."""

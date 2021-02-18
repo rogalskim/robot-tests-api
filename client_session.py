@@ -44,6 +44,17 @@ class ClientSession:
         else:
             raise ExecutionError(f"HTTP request failed: {response.status_code}\n{response.reason}")
 
+    def get_robot_dict(self, simulate_failure: bool) -> dict:
+        request_headers = self._add_fail_header(headers={}, should_fail=simulate_failure)
+        response = self._session.get(url=f"{self._server_address}/robots", headers=request_headers)
+
+        if not response.ok:
+            raise ExecutionError(f"HTTP request failed: {response.status_code}\n{response.reason}")
+
+        robot_list = response.text.split()
+        robot_dict = {index: robot_name for index, robot_name in enumerate(robot_list)}
+        return robot_dict
+
     @staticmethod
     def _add_fail_header(headers: dict, should_fail: bool) -> dict:
         """Signals mock Server to simulate request failure."""
@@ -52,3 +63,4 @@ class ClientSession:
         else:
             headers[MockConstants.fail_key] = MockConstants.false
         return headers
+

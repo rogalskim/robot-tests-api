@@ -19,7 +19,7 @@ def requires_session(method):
 
 
 def raises_standard_exceptions(method):
-    """UserInterface method wrapper for handling command exceptions."""
+    """UserInterface method wrapper for handling shared command exceptions."""
     def handle_method_exceptions(*args):
         try:
             method(*args)
@@ -60,7 +60,7 @@ class UserInterface(cmd.Cmd):
         print(f"Last Server modification time: {modification_time}")
 
     def do_exit(self, _) -> None:
-        """Sets the exit flag, resulting in program termination."""
+        """Sets the exit flag, resulting in program termination. Ignores any arguments"""
         self._was_exit_called = True
 
     def postcmd(self, _1: bool, _2: str) -> bool:

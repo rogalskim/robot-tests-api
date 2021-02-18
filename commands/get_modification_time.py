@@ -8,4 +8,4 @@ class GetModificationTime(CommandBase):
 
     def execute(self, arguments: str, session: ClientSession) -> int:
         parsed_arguments = self._parser.parse_args(arguments.split())
-        return session.get_server_modification_time()
+        return session.get_server_modification_time(simulate_failure=parsed_arguments.fail)

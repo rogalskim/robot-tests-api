@@ -1,6 +1,7 @@
 import cmd
 
 from commands.connect import Connect
+from commands.create_task import CreateTask
 from commands.get_modification_time import GetModificationTime
 from exceptions import ExecutionError, ParserExitWarning, ParsingError
 
@@ -18,7 +19,7 @@ def requires_session(method):
     return check_session_before_call
 
 
-def raises_standard_exceptions(method):
+def raises_command_exceptions(method):
     """UserInterface method wrapper for handling shared command exceptions."""
     def handle_method_exceptions(*args):
         try:
@@ -45,22 +46,29 @@ class UserInterface(cmd.Cmd):
     def has_session(self) -> bool:
         return self._client_session is not None
 
-    @raises_standard_exceptions
+    @raises_command_exceptions
     def do_connect(self, arguments: str) -> None:
-        """Sets the address of the test server and checks the connection."""
+        """Creates client session connecting to given address for other commands to use."""
         new_session = Connect().execute(arguments)
         self._client_session = new_session
         print(f"Established connection to {self._client_session.get_address()}")
 
     @requires_session
-    @raises_standard_exceptions
+    @raises_command_exceptions
     def do_get_modification_time(self, arguments: str) -> None:
-        """Queries the last modification timestamp of the Server."""
+        """Prints the last modification timestamp of the Server."""
         modification_time = GetModificationTime().execute(arguments, self._client_session)
         print(f"Last Server modification time: {modification_time}")
 
+    @requires_session
+    @raises_command_exceptions
+    def do_create_task(self, arguments: str) -> None:
+        """Sends Task creation request to the Server."""
+        created_task_id = CreateTask().execute(arguments, self._client_session)
+        print(f"Created new Task with id: {created_task_id}")
+
     def do_exit(self, _) -> None:
-        """Sets the exit flag, resulting in program termination. Ignores any arguments"""
+        """Sets the exit flag, resulting in program termination. Ignores any arguments."""
         self._was_exit_called = True
 
     def postcmd(self, _1: bool, _2: str) -> bool:

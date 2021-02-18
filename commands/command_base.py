@@ -22,6 +22,11 @@ class CommandBase(ABC):
         self._parser = CalmerParser()
         self._parsed_arguments = None
 
+        self._parser.add_argument("-f", "--fail",
+                                  help="Cause the mock API to reject the command's HTTP request.",
+                                  action="store_true",
+                                  default=False)
+
     @abstractmethod
     def execute(self, arguments: str) -> None:
         try:

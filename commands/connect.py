@@ -23,7 +23,9 @@ class Connect(CommandBase):
             raise ParserExitWarning
 
         try:
-            session = ClientSession(self._parsed_arguments.host, self._parsed_arguments.port)
+            session = ClientSession(self._parsed_arguments.host,
+                                    self._parsed_arguments.port,
+                                    self._parsed_arguments.fail)
         except ConnectionFailed:
             return None
 

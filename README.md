@@ -40,9 +40,14 @@ Established connection to https-mock://192.168.1.2:5000
 > create_task Molly configs_dev_0_8_1 100
 Created new Task with id: 1701
 ```
-- Get Task info
+- Getting Task info
 ```
 > get_task 1701
 {'task_id': 1701, 'creation_time': 1613720393, 'robot_id': 0, 'runs': 100, 'branch': 'configs_dev_0_8_1'...
+```
+- Closing the program
+```
+> exit
+Goodbye!
 ```
 

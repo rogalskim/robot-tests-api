@@ -16,13 +16,20 @@ class Task:
         self.successes = None
 
 
-def json_to_task(json: dict) -> Task:
-    task = Task(json["task_id"],
-                json["creation_time"],
-                json["robot_id"],
-                json["runs"],
-                json["branch"])
-    task.status = json["status"]
-    task.attempts = json["attempts"]
-    task.successes = json["successes"]
+def dict_to_task(input_dict: dict) -> Task:
+    task = Task(input_dict["task_id"],
+                input_dict["creation_time"],
+                input_dict["robot_id"],
+                input_dict["runs"],
+                input_dict["branch"])
+    task.status = input_dict["status"]
+    task.attempts = input_dict["attempts"]
+    task.successes = input_dict["successes"]
     return task
+
+
+def dict_list_to_task_list(dict_list: list) -> list:
+    task_list = []
+    for task_dict in dict_list:
+        task_list.append(dict_to_task(task_dict))
+    return task_list

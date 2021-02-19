@@ -2,6 +2,7 @@ import cmd
 
 from commands.connect import Connect
 from commands.create_task import CreateTask
+from commands.get_many_tasks import GetManyTasks
 from commands.get_modification_time import GetModificationTime
 from commands.get_robots import GetRobots
 from commands.get_task import GetTask
@@ -87,6 +88,14 @@ class UserInterface(cmd.Cmd):
         task = self._commands["get_task"].execute(arguments, self._client_session)
         print(task.__dict__)
 
+    @requires_session
+    @raises_command_exceptions
+    def do_get_many_tasks(self, arguments: str) -> None:
+        """Queries Tasks using given filter parameters and prints them."""
+        task_list = self._commands["get_many_tasks"].execute(arguments, self._client_session)
+        for task in task_list:
+            print(task.__dict__)
+
     def do_exit(self, _) -> None:
         """Sets the exit flag, resulting in program termination. Ignores any arguments."""
         self._was_exit_called = True
@@ -127,5 +136,6 @@ class UserInterface(cmd.Cmd):
                 "get_modification_time": GetModificationTime(),
                 "get_robots": GetRobots(),
                 "create_task": CreateTask(),
-                "get_task": GetTask()
+                "get_task": GetTask(),
+                "get_many_tasks": GetManyTasks(),
                 }

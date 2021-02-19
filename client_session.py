@@ -1,7 +1,7 @@
 import requests
 
 from exceptions import ExecutionError
-from task import Task, json_to_task
+from task import Task, dict_to_task, dict_list_to_task_list
 from server_mock import ServerMock, MockConstants
 
 
@@ -64,7 +64,21 @@ class ClientSession:
         if not response.ok:
             raise ExecutionError(f"HTTP request failed: {response.status_code}\n{response.reason}")
 
-        return json_to_task(response.json())
+        return dict_to_task(response.json())
+
+    def get_many_tasks(self, robot_name: str, status: str, simulate_failure: bool) -> list:
+        """
+        :return: list of Tasks
+        """
+        request_headers = {"robot_name": robot_name, "status": status}
+        request_headers = self._add_fail_header(request_headers, simulate_failure)
+        request_url = f"{self._server_address}/tasks?q=all"
+        response = self._session.get(url=request_url, headers=request_headers)
+
+        if not response.ok:
+            raise ExecutionError(f"HTTP request failed: {response.status_code}\n{response.reason}")
+
+        return dict_list_to_task_list(response.json())
 
     @staticmethod
     def _add_fail_header(headers: dict, should_fail: bool) -> dict:

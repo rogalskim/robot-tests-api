@@ -29,7 +29,4 @@ def dict_to_task(input_dict: dict) -> Task:
 
 
 def dict_list_to_task_list(dict_list: list) -> list:
-    task_list = []
-    for task_dict in dict_list:
-        task_list.append(dict_to_task(task_dict))
-    return task_list
+    return [dict_to_task(task_dict) for task_dict in dict_list]

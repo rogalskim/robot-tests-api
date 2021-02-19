@@ -16,9 +16,13 @@ class CalmerParser(argparse.ArgumentParser):
 
 
 class CommandBase:
-    def __init__(self):
+    def __init__(self, description: str) -> None:
         self._parser = CalmerParser()
+        self._parser.description = description
         self._parser.add_argument("-f", "--fail",
                                   help="Cause the mock API to reject the command's HTTP request.",
                                   action="store_true",
                                   default=False)
+
+    def get_description(self) -> str:
+        return self._parser.description

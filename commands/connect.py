@@ -4,7 +4,8 @@ from client_session import ClientSession
 
 class Connect(CommandBase):
     def __init__(self):
-        super().__init__()
+        super().__init__(
+            "Creates client session connecting to given address for other commands to use.")
         self._parser.add_argument("-a", "--host", "--address",
                                   help="Host address or name of the test server.",
                                   default="192.168.1.2")

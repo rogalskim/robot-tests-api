@@ -4,7 +4,7 @@ from commands.command_base import CommandBase
 
 class CreateTask(CommandBase):
     def __init__(self):
-        super().__init__()
+        super().__init__("Sends Task creation request to the Server.")
         self._parser.add_argument("robot",
                                   help="Display name of the robot to create the Task for.")
         self._parser.add_argument("branch",

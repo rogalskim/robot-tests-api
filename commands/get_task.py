@@ -5,7 +5,7 @@ from task import Task
 
 class GetTask(CommandBase):
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__("Requests one Task by its id and prints it.")
         self._parser.add_argument("task_id",
                                   help="The unique identifier of the requested Task",
                                   type=int)

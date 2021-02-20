@@ -6,6 +6,7 @@ import urllib.parse
 import requests
 import requests_mock
 
+from api import Endpoints, RequestUrls, RequestUrl
 from task import Task
 
 
@@ -170,28 +171,28 @@ class ServerMock:
         mock_tasks[-2].status = "running"
         mock_tasks[-1].status = "running"
 
-        task_dict = {task.task_id: task for task in mock_tasks}
+        tasks_dict = {task.task_id: task for task in mock_tasks}
 
-        set_task_result(task_dict, task_id=1, attempts=23, successes=18)
-        set_task_result(task_dict, task_id=8, attempts=16, successes=5)
-        set_task_result(task_dict, task_id=213, attempts=75, successes=71)
-        set_task_result(task_dict, task_id=503, attempts=6, successes=4)
+        set_task_result(tasks_dict, task_id=1, attempts=23, successes=18)
+        set_task_result(tasks_dict, task_id=8, attempts=16, successes=5)
+        set_task_result(tasks_dict, task_id=213, attempts=75, successes=71)
+        set_task_result(tasks_dict, task_id=503, attempts=6, successes=4)
 
-        return task_dict
+        return tasks_dict
 
     def _make_mock_api(self, server_address: str) -> None:
         self._adapter.register_uri(method="GET",
-                                   url=f"{server_address}/info?q=mod_time",
+                                   url=RequestUrls.get_modification_time(server_address).text(),
                                    text=self._get_modification_timestamp)
 
         self._adapter.register_uri(method="POST",
-                                   url=f"{server_address}/tasks",
+                                   url=RequestUrls.create_task(server_address).text(),
                                    text=self._create_task)
 
         self._adapter.register_uri(method="GET",
-                                   url=f"{server_address}/robots",
+                                   url=RequestUrls.get_robots(server_address).text(),
                                    text=self._get_robot_list)
 
-        task_matcher = re.compile(f"{server_address}/tasks")
-        self._adapter.register_uri("GET", task_matcher, json=self._get_tasks)
-
+        task_endpoint_url = RequestUrl(root=server_address, endpoint=Endpoints.tasks).text()
+        match_all_task_get_requests = re.compile(task_endpoint_url)
+        self._adapter.register_uri("GET", match_all_task_get_requests, json=self._get_tasks)

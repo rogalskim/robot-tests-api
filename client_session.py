@@ -2,6 +2,7 @@ import urllib.parse
 
 import requests
 
+from api import RequestUrls
 from exceptions import ExecutionError
 from task import Task, dict_to_task, dict_list_to_task_list
 from server_mock import ServerMock, MockConstants
@@ -18,7 +19,8 @@ class ClientSession:
 
     def get_server_modification_time(self, simulate_failure: bool = False) -> int:
         headers = self._make_basic_request_header(simulate_failure)
-        response = self._session.get(url=f"{self._server_address}/info?q=mod_time", headers=headers)
+        request_url = RequestUrls.get_modification_time(self._server_address).text()
+        response = self._session.get(url=request_url, headers=headers)
         self._abort_if_response_is_bad(response)
         return int(response.text)
 
@@ -26,7 +28,8 @@ class ClientSession:
                               simulate_failure: bool = False) -> int:
         """:return: Task id for the created Task"""
         request_data = {"robot_name": robot_name, "branch": git_branch, "runs": run_count}
-        response = self._session.post(url=f"{self._server_address}/tasks",
+        request_url = RequestUrls.create_task(self._server_address).text()
+        response = self._session.post(url=request_url,
                                       headers=self._make_basic_request_header(simulate_failure),
                                       json=request_data)
 
@@ -35,7 +38,8 @@ class ClientSession:
 
     def get_robot_dict(self, simulate_failure: bool) -> dict:
         request_headers = self._make_basic_request_header(simulate_failure)
-        response = self._session.get(url=f"{self._server_address}/robots", headers=request_headers)
+        response = self._session.get(url=RequestUrls.get_robots(self._server_address).text(),
+                                     headers=request_headers)
 
         self._abort_if_response_is_bad(response)
 
@@ -45,7 +49,7 @@ class ClientSession:
 
     def get_task(self, task_id: int, simulate_failure: bool) -> Task:
         request_headers = self._make_basic_request_header(simulate_failure)
-        request_url = f"{self._server_address}/tasks?id={task_id}"
+        request_url = RequestUrls.get_single_task(self._server_address, task_id).text()
         response = self._session.get(url=request_url, headers=request_headers)
 
         self._abort_if_response_is_bad(response)
@@ -57,7 +61,8 @@ class ClientSession:
         request_headers = self._make_basic_request_header(simulate_failure)
         request_headers["robot_name"] = robot_name
         request_headers["status"] = status
-        response = self._session.get(f"{self._server_address}/tasks?q=all", headers=request_headers)
+        request_url = RequestUrls.get_all_tasks(self._server_address).text()
+        response = self._session.get(url=request_url, headers=request_headers)
 
         ClientSession._abort_if_response_is_bad(response)
 

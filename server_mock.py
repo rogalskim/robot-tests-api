@@ -6,7 +6,7 @@ import urllib.parse
 import requests
 import requests_mock
 
-from api import Endpoints, RequestUrls, RequestUrl
+from api import Endpoints, RequestUrls, RequestUrl, Queries
 from task import Task
 
 
@@ -39,7 +39,7 @@ class ServerMock:
         """
         Mock callback for Server modification time requests.
 
-        :returns: modification timestamp as str.
+        :return: modification timestamp as str.
         """
         if self._should_response_fail(request):
             context.status_code = requests.codes.server_error
@@ -54,7 +54,7 @@ class ServerMock:
         """
         Mock callback for Task creation requests.
 
-        :returns: Task id as string.
+        :return: Task id as string.
         """
         requested_task_details = request.json()
 
@@ -83,7 +83,7 @@ class ServerMock:
         """
         Mock callback for robot list requests.
 
-        :returns: robot names separated by spaces.
+        :return: robot names separated by spaces.
         """
         if self._should_response_fail(request):
             context.status_code = requests.codes.im_a_teapot
@@ -96,6 +96,7 @@ class ServerMock:
         """
         Mock callback for Task requests. Handles requests both for single and multiple tasks,
         based on the url query element.
+
         :return: dict or list of dict representing the Task(s)
         """
         if self._should_response_fail(request):
@@ -103,54 +104,64 @@ class ServerMock:
             context.reason = "Internal server error."
             return {}
 
-        task_query = urllib.parse.urlsplit(request.url)[3]
-        if task_query == "":
+        query_string = urllib.parse.urlsplit(request.url).query
+        if query_string == "":
             context.status_code = requests.codes.bad_request
             context.reason = "No query specified."
             return {}
 
-        query_type, query_value = task_query.split('=')
-        if query_type == "id":
-            task_id = int(query_value)
-            if task_id not in self._tasks.keys():
-                context.status_code = requests.codes.not_found
-                context.reason = "Invalid Task Id."
-                return {}
-            context.status_code = requests.codes.ok
-            return self._tasks[task_id].__dict__
-        elif query_type == "q":
-            if query_value != "all":
-                context.status_code = requests.codes.bad_request
-                context.reason = "Invalid query."
-                return {}
-            context.status_code = requests.codes.ok
+        return self._process_task_query(request, context, query_string)
 
-            filtered_tasks = list(self._tasks.values())
+    def _process_task_query(self, request: requests.Request, context: Any, query_string: str) -> \
+            Union[dict, list]:
+        """
+        Interprets task request type based on the query string and calls proper processing method.
 
-            if "robot_name" in list(request.headers.keys()):
-                robot_name = request.headers["robot_name"]
-                if robot_name in self._robots:
-                    robot_id = self._robots.index(robot_name)
-
-                    def match_robot_id(task: Task) -> bool:
-                        return task.robot_id == robot_id
-
-                    filtered_tasks = filter(match_robot_id, filtered_tasks)
-
-            if "status" in list(request.headers.keys()):
-                status = request.headers["status"]
-
-                def match_status(task: Task) -> bool:
-                    return task.status == status
-
-                filtered_tasks = filter(match_status, filtered_tasks)
-
-            task_dicts = [task.__dict__ for task in filtered_tasks]
-            return task_dicts
+        :return: dict or list of dict representing the Task(s)
+        """
+        query_key, query_value = query_string.split('=')
+        if query_key == Queries.single_task("").key():
+            return self._get_single_task(context, query_value)
+        elif query_string == Queries.all_tasks().text():
+            return self._get_filtered_task_list(request, context, query_value)
         else:
             context.status_code = requests.codes.bad_request
             context.reason = "Invalid query."
             return {}
+
+    def _get_single_task(self, response_context: Any, query_value: str) -> dict:
+        """:return: dict representation of the Task"""
+        task_id = int(query_value)
+        if task_id not in self._tasks.keys():
+            response_context.status_code = requests.codes.not_found
+            response_context.reason = "Invalid Task Id."
+            return {}
+        response_context.status_code = requests.codes.ok
+        return self._tasks[task_id].__dict__
+
+    def _get_filtered_task_list(self, request: requests.Request, response_context: Any,
+                                query_value: str) -> list:
+        """:return: list of Tasks represented as dicts"""
+
+        tasks = list(self._tasks.values())
+
+        if "robot_name" in list(request.headers.keys()):
+            robot_name = request.headers["robot_name"]
+            tasks = self._filter_task_list_by_robot_name(tasks, robot_name)
+
+        if "status" in list(request.headers.keys()):
+            status = request.headers["status"]
+            tasks = [task for task in tasks if task.status == status]
+
+        response_context.status_code = requests.codes.ok
+        task_dicts = [task.__dict__ for task in tasks]
+        return task_dicts
+
+    def _filter_task_list_by_robot_name(self, task_list: list, robot_name: str) -> list:
+        if robot_name not in self._robots:
+            return task_list
+        robot_id = self._robots.index(robot_name)
+        return [task for task in task_list if task.robot_id == robot_id]
 
     @staticmethod
     def _make_mock_tasks() -> dict:

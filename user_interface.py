@@ -1,11 +1,6 @@
 import cmd
 
-from commands.connect import Connect
-from commands.create_task import CreateTask
-from commands.get_many_tasks import GetManyTasks
-from commands.get_modification_time import GetModificationTime
-from commands.get_robots import GetRobots
-from commands.get_task import GetTask
+import commands
 from exceptions import ExecutionError, ParserExitWarning, ParsingError
 
 
@@ -132,10 +127,10 @@ class UserInterface(cmd.Cmd):
 
     @staticmethod
     def _build_command_dict() -> dict:
-        return {"connect": Connect(),
-                "get_modification_time": GetModificationTime(),
-                "get_robots": GetRobots(),
-                "create_task": CreateTask(),
-                "get_task": GetTask(),
-                "get_many_tasks": GetManyTasks(),
+        return {"connect": commands.Connect(),
+                "get_modification_time": commands.GetModificationTime(),
+                "get_robots": commands.GetRobots(),
+                "create_task": commands.CreateTask(),
+                "get_task": commands.GetTask(),
+                "get_many_tasks": commands.GetManyTasks(),
                 }
